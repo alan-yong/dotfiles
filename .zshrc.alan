@@ -1,0 +1,128 @@
+#
+# emacs mode: -*- sh -*-
+# vim: syntax=sh
+
+# Author : Alan YONG
+
+echo "Start of .zshrc.${USER}"
+
+######################################################################
+#                   IMPORTANT ENVIROMENT VARIABLE                    #
+######################################################################
+if [ ${ALAN:-"NULL"} = "NULL" ] ; then
+    #ay# setenv ALAN "/home/alan"
+    setenv ALAN "/home/alan"
+fi
+
+if [ ${USR_LOCAL:-"NULL"} = "NULL" ] ; then
+    setenv USR_LOCAL "${ALAN}/local"
+fi
+
+if [ ${VCO:-"NULL"} = "NULL" ]; then
+    if [ -e ${ALAN}/bin/vco ] ; then
+	setenv VCO `${ALAN}/bin/vco`
+    else
+    	setenv VCO "unknown"
+    fi
+fi
+
+
+######################################################################
+#                     SHELL ENVIROMENT VARIABLE                      #
+######################################################################
+
+
+#	SET FOR ALL SHELL
+set host = "${HOST}"
+#set host = `hostname | cut -d. -f1`
+#ay# set hostip = `ypcat hosts | sort -u | grep ${HOST} | awk '{ print $1 }'`
+set hostip = `grep ${HOST} /etc/hosts | awk '{ print $1 }'`
+set term = "${TERM}"
+set tty = "${TTY}"
+#set tty = `basename ${tty}`
+set user = "${USER}"
+
+#	SKIP REMAINING SETUP IF NOT AN INTERACTIVE SHELL
+
+if [ ${USER:-"NULL"} = "NULL" -o ${prompt:-"NULL"} = "NULL" ] ; then
+    exit(0)
+fi
+
+#	SET FOR INTERACTIVE SHELL
+if [ -f ~/.DIR_COLORS.${USER} ] ; then
+	eval `dircolors -c .DIR_COLORS.${USER}`
+else
+	#setenv LS_COLORS	"${LS_COLORS}:di=01;36:ln=01;35"
+	setenv LS_COLORS	"di=01;36:ln=01;35"
+fi
+
+#	ALIASES FOR INTERACTIVE SHELL
+# other than those defined in ~/.commonrc
+
+# CDPATH
+
+cdpath_project=\
+${HOME}/project
+
+local_cdpath=~:~/dev:~/ftp:~/home:~/pc:~/work:~/xfer
+
+CDPATH=\
+${local_cdpath}:\
+${cdpath_project}:\
+/home
+
+#	COMMANDS FOR INTERACTIVE SHELL
+unlimit
+limit coredumpsize 0
+limit stacksize 8000
+
+# initialise modules command
+setenv MODULESHOME ${ALAN}/local/Modules/latest
+if [ -e ${MODULESHOME}/init/zsh ] ; then
+	. ${MODULESHOME}/init/zsh
+	module load alan
+fi
+
+#	TITLE BAR
+if [ ${PROJECT:-"NULL"} = "NULL" ] ; then
+  setenv PROJECT ""
+fi
+
+if [ "${tty}" = "console" ] ; then
+	exit(0)
+fi
+
+if [ "${TERM}" = "xterm" ] ; then
+  #if [ "${tty}" = "ttyp0" ] ; then
+  if [ ${console:-"NULL"} != "NULL" ] ; then
+    echo "]2;${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>]1;${HOST}"
+    cd() { builtin cd "$@"; echo "]2;${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>]1;${HOST}"; }
+  else
+    echo "]2;${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <${TERM}>]1;${HOST}"
+    cd() { builtin cd "$@"; echo "]2;${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <${TERM}>]1;${HOST}"; }
+  fi
+elif [ "${TERM}" = "hpterm" ] ; then
+  #titlestring="${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <${TERM}>"
+  #echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"
+  #echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}"
+  #cd() { builtin cd "$@"; titlestring="${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <${TERM}>"; echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"; echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}" }
+  header="${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <${TERM}>"
+  echo "&f0k`echo ${header} | wc -c`D${header}"
+  echo "&f-1k`echo ${header} | wc -c`D${header}"
+  cd() { builtin cd "$@"; header="${PROJECT}: ${PWD} ${USER}@${HOST} - ${TTY} - <${TERM}>"; echo "&f0k`echo ${header} | wc -c`D${header}"; echo "&f-1k`echo ${header} | wc -c`D${header}" }
+elif [ ${OPENWINHOME:-"NULL"} != "NULL" ] ; then
+  if [ "${tty}" = "ttyp0" ] ; then
+    echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>"
+    cd() { builtin cd "$@"; echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>\" }
+  else
+    echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <openwindow>"
+    cd() { builtin cd "$@"; echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <openwindow>\" }
+  fi
+elif [ "${TERM}" = "sun-cmd" ] ; then
+  echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>"
+  cd() { builtin cd "$@"; echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - << CONSOLE >>\" }
+elif [ "${TERM}" = "sun" ] ; then
+  echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <Sunwindow>"
+  cd() { builtin cd "$@"; echo "]l${PROJECT}: ${PWD} - ${USER}@${HOST} - ${TTY} - <Sunwindow>\" }
+fi
+

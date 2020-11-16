@@ -1,0 +1,212 @@
+#
+# emacs mode: -*- csh -*-
+# vim: syntax=csh
+
+# Author : Alan YONG
+
+echo "Start of .tcshrc.${USER}"
+
+
+######################################################################
+#                   IMPORTANT ENVIROMENT VARIABLE                    #
+######################################################################
+
+if ( ! ${?ALAN} ) then
+    #ay# setenv ALAN "/home/alan"
+    setenv ALAN "/home/alan"
+endif
+
+if ( ! ${?USR_LOCAL} ) then
+    setenv USR_LOCAL "${ALAN}/local"
+endif
+
+if ( ! ${?VCO} ) then
+    if ( -e ${ALAN}/bin/vco ) then
+        setenv VCO `${ALAN}/bin/vco`
+    else
+        setenv VCO "unknown"
+    endif
+endif
+
+
+######################################################################
+#                     SHELL ENVIROMENT VARIABLE                      #
+######################################################################
+
+#set local_cdpath = ( ~ ~/dev ~/ftp ~/home ~/pc \
+#	~/project ~/training \
+#	)
+#set cdpath = ( . ${local_cdpath} / \
+#	${cdpath} \
+#	)
+
+#set local_path = ( ~/bin ${USR_LOCAL}/bin.${VCO} )
+#set path = ( ${local_path} \
+#	${path} \
+#	. )
+
+#	SET FOR ALL SHELL
+set host = "${HOST}"
+#set host = `hostname | cut -d. -f1`
+#ay# set hostip = `ypcat hosts | sort -u | grep ${HOST} | awk '{ print $1 }'`
+set hostip = `grep ${HOST} /etc/hosts | awk '{ print $1 }'`
+set TTY = "${tty}"
+#set tty = `tty`
+#set tty = `basename ${tty}`
+
+#setenv DISPLAY		"${REMOTEHOST}:0.0"
+
+#source project rc environment
+if ( -e ~/.projectrc ) then
+	source ~/.projectrc
+endif
+
+#source common rc environment variables and aliases for both csh and tcsh
+if ( -e ~/.commonrc ) then
+	source ~/.commonrc
+endif
+
+#	SKIP REMAINING SETUP IF NOT AN INTERACTIVE SHELL
+
+if ( ${?USER} == 0 || ${?prompt} == 0 ) exit(0)
+
+#	SET FOR INTERACTIVE SHELL
+set addsuffix	# default set
+set ampm
+set autocorrect
+set autoexpand
+set autolist
+#set autologout = 0
+unset autologout
+set color
+set colorcat
+#set complete = "enhance"
+set complete = "all"
+set correct = "all"
+set dextract
+set dunique
+set fignore = ( ~ .o )
+set filec
+set histdup = "prev"
+set history = 100	# default 100
+unset ignoreeof
+set listlinks
+set mail = ( 300 /usr/spool/mail/${USER} )
+set nobeep
+unset noclobber
+set prompt = "%B[%h]%b %n@%m:%B%c3%b %# "
+set printexitvalue
+set savehist = 0
+set shell = "/bin/tcsh"
+set symlinks = "ignore"
+set time = 300
+#set verbose
+
+setenv COLUMNS		""
+setenv EDITOR		"/bin/vi"
+setenv EXINIT		"set ai ic nu redraw wm=8"
+#setenv HOME		"${home}"
+setenv LINES		""
+#setenv LOGNAME		"${USER}"
+if ( -f ~/.DIR_COLORS.${USER} ) then
+	eval `dircolors -c .DIR_COLORS.${USER}`
+else
+	#setenv LS_COLORS	"${LS_COLORS}:di=01;36:ln=01;35"
+	setenv LS_COLORS	"di=01;36:ln=01;35"
+endif
+#setenv MAIL		"/usr/spool/mail/${USER}"
+setenv PAGER		"less"
+#setenv PATH		"${path}"
+#setenv PWD		"${cwd}"
+setenv SHELL		"${shell}"
+#setenv TERM		"${term}"
+setenv TERMCAP		"/etc/termcap"
+#setenv USER		"${user}"
+
+
+#	ALIASES FOR INTERACTIVE SHELL
+# other than those defined in ~/.commonrc
+
+#	COMMANDS FOR INTERACTIVE SHELL
+unlimit
+limit coredumpsize 0
+limit stacksize 8000
+
+# initialise modules command
+switch (${VCO})
+    case hpu: # HP UX
+	echo "Modules not available for HP UX"
+	breaksw
+    case linux: # Linux
+	# source Modules .tcshrc if exist
+	setenv MODULESHOME ${ALAN}/local/Modules/latest
+	if ( -e ${MODULESHOME}/init/tcsh ) then
+		source ${MODULESHOME}/init/tcsh
+		module load alan
+	else
+		echo "Modules not available for Linux"
+	endif
+	breaksw
+    case ss5: # SunOS
+	# source Modules .tcshrc if exist
+	setenv MODULESHOME ${ALAN}/local/Modules/latest
+	if ( -e ${MODULESHOME}/init/tcsh ) then
+		source ${MODULESHOME}/init/tcsh
+		module load alan
+	else
+		echo "Modules not available for SunOS"
+	endif
+	breaksw
+    default:
+	echo "Modules not available for current platform ${VCO}"
+	breaksw
+endsw
+
+# program tcsh's completion for module command:
+complete module \
+	'n/use/d/' \
+	'n/unuse/d/' \
+	'n/*/(load unload switch display avail use \
+		unuse update purge list clear help \
+		initadd initrm initswitch initlist initclear)/'
+
+#	TITLE BAR
+if ( ! ${?PROJECT} ) then
+  setenv PROJECT ""
+endif
+
+if ( "${tty}" == "console" ) exit(0)
+if ( "${TERM}" == "xterm" ) then
+  #if ( "${tty}" == "ttyp0" ) then
+  if ( "${?console}" == "1" ) then
+    echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>]1;${HOST}"
+    alias cd 'chdir \!*; echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>]1;${HOST}"'
+    set watch = ( 1 any any )
+  else
+    echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>]1;${HOST}"
+    alias cd 'chdir \!*; echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>]1;${HOST}"'
+  endif
+else if ("${TERM}" == "hpterm") then
+  #set titlestring = "${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"
+  #echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"
+  #echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}"
+  #alias cd 'chdir \!*; set titlestring="${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"; echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"; echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}"'
+  set header = "${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"
+  echo "&f0k`echo ${header} | wc -c`D${header}"
+  echo "&f-1k`echo ${header} | wc -c`D${header}"
+  alias cd 'chdir \!*; set header="${PROJECT}: ${cwd} ${USER}@${HOST} - ${tty} - <${TERM}>"; echo "&f0k`echo ${header} | wc -c`D${header}"; echo "&f-1k`echo ${header} | wc -c`D${header}"'
+else if ( "${?OPENWINHOME}" == "1" ) then
+  if ( "${tty}" == "ttyp0" ) then
+    echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>"
+    alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"'
+  else
+    echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <openwindow>"
+    alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <openwindow>\"'
+  endif
+else if ( "${TERM}" == "sun-cmd" ) then
+  echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>"
+  alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"'
+else if ( "${TERM}" == "sun" ) then
+  echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <Sunwindow>"
+  alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <Sunwindow>\"'
+endif

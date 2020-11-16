@@ -1,0 +1,68 @@
+#
+# emacs mode: -*- csh -*-
+# vim: syntax=csh
+
+# Author : Alan YONG
+
+echo "Start of .tcshrc.title"
+
+######################################################################
+#                   IMPORTANT ENVIROMENT VARIABLE                    #
+######################################################################
+
+#	SET FOR ALL SHELL
+set host = "${HOST}"
+#set host = `hostname | cut -d. -f1`
+#ay# set hostip = `ypcat hosts | sort -u | grep ${HOST} | awk '{ print $1 }'`
+set hostip = `grep ${HOST} /etc/hosts | awk '{ print $1 }'`
+set TTY = "${tty}"
+#set tty = `tty`
+#set tty = `basename ${tty}`
+
+#	SKIP REMAINING SETUP IF NOT AN INTERACTIVE SHELL
+
+if ( ${?USER} == 0 || ${?prompt} == 0 ) exit(0)
+
+#	COMMANDS FOR INTERACTIVE SHELL
+limit coredumpsize 0
+
+#	TITLE BAR
+if ( "${?PROJECT}" == "0" ) then
+  setenv PROJECT ""
+endif
+
+if ( "${tty}" == "console" ) exit(0)
+if ( "${TERM}" == "xterm" ) then
+  #if ( "${tty}" == "ttyp0" ) then
+  if ( "${?console}" == "1" ) then
+    echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>]1;${HOST}"
+    alias cd 'chdir \!*; echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>]1;${HOST}"'
+    set watch = ( 1 any any )
+  else
+    echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>]1;${HOST}"
+    alias cd 'chdir \!*; echo "]2;${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>]1;${HOST}"'
+  endif
+else if ("${TERM}" == "hpterm") then
+  #set titlestring = "${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"
+  #echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"
+  #echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}"
+  #alias cd 'chdir \!*; set titlestring="${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"; echo "&f0k`echo ${titlestring} | wc -c`D${titlestring}"; echo "&f-1k`echo ${titlestring} | wc -c`D${titlestring}"'
+  set header = "${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <${TERM}>"
+  echo "&f0k`echo ${header} | wc -c`D${header}"
+  echo "&f-1k`echo ${header} | wc -c`D${header}"
+  alias cd 'chdir \!*; set header="${PROJECT}: ${cwd} ${USER}@${HOST} - ${tty} - <${TERM}>"; echo "&f0k`echo ${header} | wc -c`D${header}"; echo "&f-1k`echo ${header} | wc -c`D${header}"'
+else if ( "${?OPENWINHOME}" == "1" ) then
+  if ( "${tty}" == "ttyp0" ) then
+    echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"
+    alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"'
+  else
+    echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <openwindow>\"
+    alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <openwindow>\"'
+  endif
+else if ( "${TERM}" == "sun-cmd" ) then
+  echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"
+  alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - << CONSOLE >>\"'
+else if ( "${TERM}" == "sun" ) then
+  echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <Sunwindow>\"
+  alias cd 'chdir \!*; echo "]l${PROJECT}: ${cwd} - ${USER}@${HOST} - ${tty} - <Sunwindow>\"'
+endif

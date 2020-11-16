@@ -1,0 +1,171 @@
+#
+# emacs mode: -*- csh -*-
+# vim: syntax=csh
+
+# Author : Alan YONG
+#
+# Common environment variables and aliases for both csh and tcsh
+
+echo "Start of .commonrc"
+
+###	IMPORTANT ENVIRONMENT VARIABLES
+if ( ! ${?ALAN} ) then
+    setenv ALAN "/home/alan"
+endif
+if ( ! ${?USR_LOCAL} ) then
+    setenv USR_LOCAL "${ALAN}/local"
+endif
+if ( ! ${?VCO} ) then
+    if ( -e ${ALAN}/bin/vco ) then
+        setenv VCO `${ALAN}/bin/vco`
+    else
+        setenv VCO "unknown"
+    endif
+endif
+
+#	SET FOR ALL SHELL
+if ( ! ${?cdpath} ) then
+    set cdpath = ()
+endif
+set cdpath_justice = ( \
+	${HOME}/project/justice \
+	${HOME}/project/justice/hw/tb/elib/ca_com_hw \
+	)
+set cdpath_ngr = ( \
+	${HOME}/project/ngr \
+	${HOME}/project/ngr/model \
+	)
+set cdpath_ocean = ( \
+	${HOME}/project/ocean \
+	${HOME}/project/ocean/rtl \
+	${HOME}/project/ocean/rtl/test \
+	${HOME}/project/ocean/rtl/tb \
+	${HOME}/project/ocean/rtl/asic \
+	)
+set cdpath_project = ( \
+	${HOME}/project \
+	${cdpath_ngr} \
+	${cdpath_ocean} \
+	${cdpath_justice} \
+	)
+set local_cdpath = ( ~ )
+set cdpath = ( \
+	${local_cdpath} \
+	${cdpath_project} \
+	/u \
+	)
+
+set path = ( ${ALAN}/bin ${USR_LOCAL}/bin.${VCO} ${path} )
+
+unset ignoreeof
+
+###	ENVIRONMENT VARIABLES
+#if ( ${?LESSOPEN} ) then
+	unsetenv LESSOPEN
+#	setenv LESSOPEN	"|/usr/bin/lesspipe.sh %s"
+#endif
+#ay# setenv MANPATH "/usr/share/man"
+setenv MANPATH "/usr/share/man"
+setenv MANPATH "${ALAN}/local/man:${MANPATH}"
+setenv MOZILLA_FIVE_HOME "${USR_LOCAL}/mozilla"
+setenv PAGER	"less"
+setenv PRINTER	"peckover"
+#setenv PRINTER	"parillo"
+#setenv ftp_proxy	"proxy.canon.com:911"
+#setenv http_proxy	"proxy.canon.com:911"
+
+###	SKIP REMAINING SETUP IF NOT AN INTERACTIVE SHELL
+if ( ${?USER} == 0 || ${?prompt} == 0 ) exit(0)
+
+###	ALIASES FOR INTERACTIVE SHELL
+alias ,		'cd ${dot}'
+alias .		source
+alias ..	'd; cd ..'
+alias =		'dirs -v'
+alias a		alias
+alias d		'set dot = ${cwd}'
+alias fe	"find . -name '*'\!:1'*' -print -exec \!:2* {} \;"
+alias ff	"find . -name '*'\!:1'*' -print \!:2*"
+alias h		'history \!* | tail -${LINES}'
+alias ha	'history \!* | less'
+alias home	'cd ${HOME}'
+alias j		'jobs -l'
+alias l		'ls -Fas'
+alias la	'ls -Fals'
+alias ll	'ls -Fls'
+alias lll	'ls -Fals \!* | less'
+alias lr	'ls -FRals \!* | less'
+alias lt	'ls -Farst'
+alias llt	'ls -Falrst'
+alias lo	logout
+#alias ltl	'latex \!*; dvips \!*'
+#alias lts	'latex \!*; texsun \!*'
+#alias ltx	'latex \!*; xtex \!*'
+#alias lj	'ilp \!* -pr hp_lj4'
+alias mn	'tbl \!* | nroff -man | less'
+alias nms	'tbl \!* | nroff -ms | less'
+alias passwd	yppasswd
+alias pd	'dirs -v'
+alias po	'popd \!*; cd .'
+#alias psl	'tbl \!* | eqn | psroff -Tps -ms'
+#alias psmanl	'tbl \!* | eqn | psroff -Tps -man'
+#alias psx	'tbl \!* | eqn | psroff -Tdt -ms'
+alias pu	'pushd \!*; cd .'
+#alias px	'ps -ef | grep -v root'
+alias u		unalias
+
+switch (${VCO})
+    case m: # Apollo Domain
+	alias px	'ps -aux \!* | grep -v root'
+	breaksw
+    case dao: # Dec Alpha
+	alias px	'ps -ef \!* | grep -v root'
+	breaksw
+    case hpu: # HP UX
+	alias df	bdf
+	alias lj	'a2ps -2 \!*'
+	alias px	'ps -ef \!* | grep -v root'
+	alias rsh	remsh
+	breaksw
+    case linux: # Linux
+	alias px	'ps -ef \!* | grep -v root'
+	alias l		'ls --color -Fas'
+	alias la	'ls --color -Fals'
+	alias ll	'ls --color -Fls'
+	alias lll	'ls -Fals \!* | less'
+	alias lr	'ls -FRals \!* | less'
+	alias lt	'ls --color -Falrst'
+	breaksw
+    case ss5: # Solaris
+	alias df	df -k
+	alias lj	'a2ps -2 \!*'
+	alias px	'ps -ef \!* | grep -v root'
+	breaksw
+    case sss: # Sun OS
+	alias lj	'a2ps -2 \!*'
+	alias px	'ps -aux \!* | grep -v root'
+	breaksw
+    default:
+	alias px	'ps -aux \!* | grep -v root'
+	breaksw
+endsw
+
+###	ALIASES FOR DOS COMMAND
+alias arj	unarj
+alias cls	clear
+alias copy	cp
+alias del	rm
+alias dir	ls
+alias md	mkdir
+alias move	mv
+alias path      'echo ${path}'
+alias pkunzip	unzip
+alias rd	rmdir
+alias ren	mv
+alias type	cat
+
+#	COMMANDS FOR INTERACTIVE SHELL
+set dot = ~
+umask 022
+unalias rm
+
